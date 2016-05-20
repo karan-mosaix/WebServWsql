@@ -25,19 +25,25 @@ module.exports = {
 				});
 
 				// query data:
-				con.query('SELECT * FROM potluck WHERE id='+id,function(err,rows){
-					if(err){
-					   throw err;
-					   return;
-					}
-					console.log('Data received from db:\n');
-					/*for (var i=0;i<rows.length;i++){
-					  console.log(rows[i].food);
-					}*/
-					console.log(rows[0].name)
-					ret_name = rows[0].name;
-					callback(ret_name); // call the call back function with return user name
-				});
+				if (id>4 || id<1){
+	          console.error("Invalid ID");
+	          callback("Invalid ID, should be between 1 and 4");
+	      }
+				else {
+						con.query('SELECT * FROM potluck WHERE id='+id,function(err,rows){
+							if(err){
+							   throw err;
+							   return;
+							}
+							console.log('Data received from db:\n');
+							/*for (var i=0;i<rows.length;i++){
+							  console.log(rows[i].food);
+							}*/
+							console.log(rows[0].name)
+							ret_name = rows[0].name;
+							callback(ret_name); // call the call back function with return user name
+						});
+				}// end of else
 
 				con.end(function(err) {
 					// gracefull disconnection

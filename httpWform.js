@@ -40,9 +40,9 @@ function processAllFieldsOfTheForm(req, res) {
       var req_id = parseInt(fields.ID);
 
        // access mysql server and retrieve the name:
-      console.log("response from name_from_sql: " + resp)
       sql.name_from_sql(req_id, function(resp){
           fs.readFile('form.html','utf8', function (err, data) {
+            console.log("response from name_from_sql: " + resp);
             res.writeHead(200, {
                             'Content-Type': 'text/html'
                         });
