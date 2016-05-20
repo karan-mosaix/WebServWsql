@@ -1,0 +1,5 @@
+# list of installed packages in this directory using npm
+mysql
+init
+formidable@latest --save
+cheerio
