@@ -2,27 +2,42 @@ var http = require('http');
 var fs = require('fs');
 var formidable = require("formidable");
 var util = require('util');
-//var mysql = require("mysql");
 var sql = require('./sql');
+var exec = require('child_process').exec,
+    child;
 
+var form_dir = 'form.html'; // change this to absolute path
 var server = http.createServer(function (req, res) {
     if (req.method.toLowerCase() == 'get') {
-/*	// lets see how request looks like:
-	console.log('request:\n');
-	for(var key in req){
-		console.log("\n" + key);
-	}
-*/
+    	// lets see how request looks like:
+    	/*
+      console.log('request:\n');
+    	for(var key in req){
+    		console.log("\n" + key);
+	    }
+      */
+
         displayForm(res);
     } else if (req.method.toLowerCase() == 'post') {
         processAllFieldsOfTheForm(req, res);
     } else if (req.method.toLowerCase() == 'put'){ // request from commandline
         processCurlMessage(req, res);
     }
+    // run something to heatup cpu with every request:
+    child = exec('end=$((SECONDS+1));while [[ $SECONDS -lt $end ]]; do :;done', // command line argument directly in string
+    {shell: "/bin/bash"},
+    function (error, stdout, stderr) {      // one easy function to capture data/errors
+      // console.log('command: \n' + 'end=$((SECONDS+1));while [ $SECONDS -lt $end ]; do echo true;done');
+      // console.log('stdout: ' + stdout);
+      // console.log('stderr: ' + stderr);
+      if (error !== null) {
+        console.log('Bash exec error: ' + error);
+      }
+    });
 });
 
 function displayForm(res) {
-    fs.readFile('form.html', function (err, data) {
+    fs.readFile(form_dir, function (err, data) {
         res.writeHead(200, {
             'Content-Type': 'text/html',
                 'Content-Length': data.length
@@ -42,11 +57,11 @@ function processAllFieldsOfTheForm(req, res) {
 
        // access mysql server and retrieve the name:
       sql.name_from_sql(req_id, function(resp){
-          fs.readFile('form.html','utf8', function (err, data) {
+          fs.readFile(form_dir,'utf8', function (err, data) {
             console.log("response from name_from_sql: " + resp);
             res.writeHead(200, {
                             'Content-Type': 'text/html',
-                                'Content-Length': resp.length
+                                'Content-Length': data.length + resp.length
                         });
           // parse lines to modify the html and put the response there:
             var html_lines = data.split('\n');
