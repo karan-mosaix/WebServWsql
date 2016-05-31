@@ -7,7 +7,8 @@ var exec = require('child_process').exec,
     child;
 
 var form_dir = '/home/webserv/webServWsql/form.html'; // change this to absolute path
-var server = http.createServer(function (req, res) {
+form_dir = 'form.html';
+var server = http.createServer(function (req, res) { // THIS FUNCTION WILL BE CALLED WITH EVERY REQUEST TO SERVER
     if (req.method.toLowerCase() == 'get') {
     	// lets see how request looks like:
     	/*
@@ -16,25 +17,34 @@ var server = http.createServer(function (req, res) {
     		console.log("\n" + key);
 	    }
       */
-
         displayForm(res);
     } else if (req.method.toLowerCase() == 'post') {
         processAllFieldsOfTheForm(req, res);
     } else if (req.method.toLowerCase() == 'put'){ // request from commandline
+        cmd = [];
         processCurlMessage(req, res);
-    }
-    // run something to heatup cpu with every request:
-    child = exec('end=$((SECONDS+5));while [[ $SECONDS -lt $end ]]; do :;done &', // command line argument directly in string
-    {shell: "/bin/bash"},
-    function (error, stdout, stderr) {      // one easy function to capture data/errors
-      // console.log('command: \n' + 'end=$((SECONDS+1));while [ $SECONDS -lt $end ]; do echo true;done');
-      // console.log('stdout: ' + stdout);
-      // console.log('stderr: ' + stderr);
-      if (error !== null) {
-        console.log('Bash exec error: ' + error);
-      }
-    });
-});
+        req.on('error', function(err) {
+          console.error(err);
+        }).on('data', function(chunk) {
+          cmd.push(chunk);
+        }).on('end', function() {
+          cmd = Buffer.concat(cmd).toString();
+          // run something to heatup cpu with every request:
+          console.log('executing command: \n' + cmd);
+          child = exec('stress '+ cmd + ' -t 10', // command line argument directly in string (Stress for 10 secs)
+            {shell: "/bin/bash"},
+            function (error, stdout, stderr) {      // one easy function to capture data/errors
+
+              console.log('stdout: ' + stdout);
+              console.log('stderr: ' + stderr);
+              if (error !== null) {
+                console.log('Bash exec error: ' + error);
+              }
+          }); // End of exec
+        }); // End of req.on ( data, end ...)
+
+      } //End of put http method handling
+});  // END OF REQUEST CALLBACK FUNCTION
 
 function displayForm(res) {
     fs.readFile(form_dir, function (err, data) {
@@ -86,9 +96,9 @@ function processCurlMessage(req, res){
   sql.name_from_sql(rand_id, function(ret_name){
     res.writeHead(200, {
                     'Content-Type': 'text/plain',
-                        'Content-Length': ret_name.length+1
+                        'Content-Length': ret_name.length+1 + 23
                 });
-    res.end(ret_name + '\n');
+    res.end(ret_name + '\n' + "IS THIS SEEN?\n");
   }); // end name_from_sql
 
 } // end processCurlMessage

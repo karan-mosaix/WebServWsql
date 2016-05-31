@@ -35,7 +35,7 @@ module.exports = {
 							   throw err;
 							   return;
 							}
-							console.log('Data received from db:\n');
+							console.log('  [sql]: Data received from db:');
 							/*for (var i=0;i<rows.length;i++){
 							  console.log(rows[i].food);
 							}*/
