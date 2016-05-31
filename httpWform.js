@@ -23,27 +23,7 @@ var server = http.createServer(function (req, res) { // THIS FUNCTION WILL BE CA
     } else if (req.method.toLowerCase() == 'put'){ // request from commandline
         cmd = [];
         processCurlMessage(req, res);
-        req.on('error', function(err) {
-          console.error(err);
-        }).on('data', function(chunk) {
-          cmd.push(chunk);
-        }).on('end', function() {
-          cmd = Buffer.concat(cmd).toString();
-          // run something to heatup cpu with every request:
-          console.log('executing command: \n' + cmd);
-          child = exec('stress '+ cmd + ' -t 10', // command line argument directly in string (Stress for 10 secs)
-            {shell: "/bin/bash"},
-            function (error, stdout, stderr) {      // one easy function to capture data/errors
-
-              console.log('stdout: ' + stdout);
-              console.log('stderr: ' + stderr);
-              if (error !== null) {
-                console.log('Bash exec error: ' + error);
-              }
-          }); // End of exec
-        }); // End of req.on ( data, end ...)
-
-      } //End of put http method handling
+              } //End of put http method handling
 });  // END OF REQUEST CALLBACK FUNCTION
 
 function displayForm(res) {
@@ -93,12 +73,45 @@ function processAllFieldsOfTheForm(req, res) {
 // will be called upon command line curl call:
 function processCurlMessage(req, res){
   var rand_id = Math.floor(Math.random()*4+1)
-  sql.name_from_sql(rand_id, function(ret_name){
-    res.writeHead(200, {
-                    'Content-Type': 'text/plain',
-                        'Content-Length': ret_name.length+1 + 23
-                });
-    res.end(ret_name + '\n' + "IS THIS SEEN?\n");
+  sql.name_from_sql(rand_id, function(ret_name){ // this function will be called when sql responds
+    req.on('error', function(err) {
+      console.error(err);
+    }).on('data', function(chunk) {
+      cmd.push(chunk);
+    }).on('end', function() {
+      cmd = Buffer.concat(cmd).toString();
+      var stress_dev;
+      switch (cmd[1]) {
+        case 'c':
+          stress_dev='CPU';
+          break;
+        case 'm':
+          stress_dev='RAM'
+          break;
+        case 'd':
+          stress_dev='DiskDrive'
+          break;
+      }
+      ret_name = "Response from sql server: " + ret_name + "\n now stressing " + stress_dev + " for 10 seconds.\n"
+      res.writeHead(200, {
+                      'Content-Type': 'text/plain',
+                          'Content-Length': ret_name.length+1
+                  });
+      res.end(ret_name + '\n');
+      // run something to heatup cpu with every request:
+      console.log('executing command: \n' + cmd);
+      child = exec('stress '+ cmd + ' -t 10', // command line argument directly in string (Stress for 10 secs)
+        {shell: "/bin/bash"},
+        function (error, stdout, stderr) {      // one easy function to capture data/errors
+
+          console.log('stdout: ' + stdout);
+          console.log('stderr: ' + stderr);
+          if (error !== null) {
+            console.log('Bash exec error: ' + error);
+          }
+      }); // End of exec
+    }); // End of req.on ( data, end ...)
+
   }); // end name_from_sql
 
 } // end processCurlMessage
