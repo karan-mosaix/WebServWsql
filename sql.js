@@ -21,7 +21,7 @@ module.exports = {
 					  console.log('Error connectiing to db');
 					  return;
 					}
-					console.log('Connection established');
+					// console.log('Connection established');
 				});
 
 				// query data:
@@ -35,11 +35,11 @@ module.exports = {
 							   throw err;
 							   return;
 							}
-							console.log('  [sql]: Data received from db:');
+							// console.log('  [sql]: Data received from db:');
 							/*for (var i=0;i<rows.length;i++){
 							  console.log(rows[i].food);
 							}*/
-							console.log(rows[0].name)
+							// console.log(rows[0].name)
 							ret_name = rows[0].name;
 							callback(ret_name); // call the call back function with return user name
 						});

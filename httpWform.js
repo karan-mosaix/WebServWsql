@@ -6,7 +6,7 @@ var sql = require('./sql');
 var exec = require('child_process').exec,
     child;
 
-var form_dir = '/home/webserv/webServWsql/form.html'; // change this to absolute path
+var form_dir = process.env.HOME + '/webServWsql/form.html'; // change this to absolute path
 form_dir = 'form.html';
 var server = http.createServer(function (req, res) { // THIS FUNCTION WILL BE CALLED WITH EVERY REQUEST TO SERVER
     if (req.method.toLowerCase() == 'get') {
@@ -92,24 +92,29 @@ function processCurlMessage(req, res){
           stress_dev='DiskDrive'
           break;
       }
-      ret_name = "Response from sql server: " + ret_name + "\n now stressing " + stress_dev + " for 10 seconds.\n"
+      ret_name = "Response from sql server: " + ret_name + "\nNow stressing " + stress_dev + " for 10 seconds."
+
+
       res.writeHead(200, {
                       'Content-Type': 'text/plain',
-                          'Content-Length': ret_name.length+1
+                          'Content-Length': ret_name.length+1 + 34
                   });
-      res.end(ret_name + '\n');
+      res.write(ret_name + '\n');
       // run something to heatup cpu with every request:
-      console.log('executing command: \n' + cmd);
-      child = exec('stress '+ cmd + ' -t 10', // command line argument directly in string (Stress for 10 secs)
+      child = exec('stress -q '+ cmd + ' -t 10', // command line argument directly in string (Stress for 10 secs)
         {shell: "/bin/bash"},
         function (error, stdout, stderr) {      // one easy function to capture data/errors
 
-          console.log('stdout: ' + stdout);
-          console.log('stderr: ' + stderr);
+          // console.log('stdout: ' + stdout);
+          // console.log('stderr: ' + stderr);
           if (error !== null) {
             console.log('Bash exec error: ' + error);
           }
+          console.log("finished stress\n");
+          res.end("Finished with Stressing instance.\n");
       }); // End of exec
+
+
     }); // End of req.on ( data, end ...)
 
   }); // end name_from_sql
